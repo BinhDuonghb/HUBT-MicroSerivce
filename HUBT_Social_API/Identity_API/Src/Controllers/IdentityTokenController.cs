@@ -1,0 +1,69 @@
+﻿using AutoMapper;
+using HUBT_Social_Base;
+using HUBT_Social_Core.Models.DTOs.IdentityDTO;
+using HUBT_Social_Core.Settings;
+using HUBT_Social_Identity_Service.Services;
+using HUBT_Social_Identity_Service.Services.IdentityCustomeService;
+using Identity_API.Src.Models;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
+using MongoDB.Driver;
+
+namespace Identity_API.Src.Controllers
+{
+    [Route("api/identity/token")]
+    [ApiController]
+    public class IdentityTokenController(
+        IHubtIdentityService<AUser, ARole, UserToken> identityService,
+        IOptions<JwtSetting> options,
+        IMapper mapper) : DataLayerController(mapper,options)
+    {
+        private readonly ITokenService<AUser,UserToken> _tokenService = identityService.TokenService;
+        private readonly IUserService<AUser, ARole> _userService = identityService.UserService;
+        [HttpGet]
+        public async Task<IActionResult> IsValidateToken(string accessToken, string refreshToken)
+        {
+            if (accessToken != null)
+            {
+                TokenResponseDTO? result = await _tokenService.ValidateTokens(accessToken, refreshToken);
+                if (result != null)
+                {
+                    return Ok(result);
+                }
+                else
+                {
+                    return BadRequest(LocalValue.Get(KeyStore.InvalidCredentials));
+                }
+            }
+            return Unauthorized(LocalValue.Get(KeyStore.UnAuthorize));
+        }
+        [HttpPost]
+        public async Task<IActionResult> GenerateToken([FromQuery] string id)
+        {
+            AUser? user = await _userService.FindUserByIdAsync(id);
+            if (user != null)
+            {
+                TokenResponseDTO? tokenResponseDTO = await _tokenService.GenerateTokenAsync(user);
+                if (tokenResponseDTO != null)
+                {
+                    return Ok(tokenResponseDTO);
+                }
+            }
+            return BadRequest(LocalValue.Get(KeyStore.UnableToStoreInDatabase));
+        }
+        [HttpDelete]
+        public async Task<IActionResult> DeleteToken([FromQuery] string id)
+        {
+            AUser? user = await _userService.FindUserByIdAsync(id);
+            if (user != null)
+            {
+                if (await _tokenService.DeleteTokenAsync(user))
+                {
+                    return Ok(LocalValue.Get(KeyStore.TokenDeleted));
+                }
+            }
+            return BadRequest(LocalValue.Get(KeyStore.UnableToStoreInDatabase));
+        }
+    }
+}
