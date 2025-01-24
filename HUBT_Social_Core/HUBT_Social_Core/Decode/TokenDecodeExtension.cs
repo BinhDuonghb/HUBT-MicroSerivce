@@ -1,6 +1,8 @@
 ﻿using HUBT_Social_Core.Models.DTOs;
 using HUBT_Social_Core.Models.DTOs.IdentityDTO;
 using HUBT_Social_Core.Settings;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
@@ -43,6 +45,42 @@ namespace HUBT_Social_Core.Decode
         public static ClaimsPrincipal? DecodeToken(this string accessToken, JwtSetting jwtSettings,bool refresh = false)
         {
             return DecodeToken(accessToken, jwtSettings, out _,refresh);
+        }
+        public static string? ExtractBearerToken(this IHeaderDictionary headers)
+        {
+            var authHeader = headers.Authorization.FirstOrDefault();
+            return authHeader?.Replace("Bearer ", "");
+        }
+        public static TokenInfoDTO? ExtractTokenInfo(
+           this HttpRequest Request,
+           JwtSetting jwtSetting)
+        {
+            ClaimsPrincipal? claimsPrincipal = Request.Headers
+                .ExtractBearerToken()
+                ?.DecodeToken(jwtSetting);
+
+            if (claimsPrincipal == null)
+                return null;
+
+
+            var username = claimsPrincipal.FindFirst(ClaimTypes.Name)?.Value;
+            var userId = claimsPrincipal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var email = claimsPrincipal.FindFirst(ClaimTypes.Email)?.Value;
+            var tokenId = claimsPrincipal.FindFirst(JwtRegisteredClaimNames.Jti)?.Value;
+            var roles = claimsPrincipal.FindAll(ClaimTypes.Role)
+                ?.Select(c => c.Value)
+                .Distinct()
+                .ToArray() ?? [];
+            if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(username) || string.IsNullOrEmpty(email) || string.IsNullOrEmpty(tokenId))
+                return null;
+            return new TokenInfoDTO
+            {
+                Username = username,
+                UserId = userId,
+                Email = email,
+                TokenId = tokenId,
+                Roles = roles
+            };
         }
     }
 }

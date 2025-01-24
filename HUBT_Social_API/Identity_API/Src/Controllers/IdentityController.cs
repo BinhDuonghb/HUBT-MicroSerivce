@@ -1,30 +1,36 @@
 ﻿using AutoMapper;
 using HUBT_Social_Base;
+using HUBT_Social_Core.Decode;
 using HUBT_Social_Core.Models.DTOs.IdentityDTO;
 using HUBT_Social_Core.Settings;
 using HUBT_Social_Identity_Service.Services;
 using HUBT_Social_Identity_Service.Services.IdentityCustomeService;
 using Identity_API.Src.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
+using MongoDB.Driver.Core.Operations;
 using System.Xml.Linq;
 
 namespace Identity_API.Src.Controllers
 {
     [Route("api/identity")]
     [ApiController]
+    [Authorize]
     public class IdentityController(IHubtIdentityService<AUser, ARole> identityService, IMapper mapper, IOptions<JwtSetting> options) : DataLayerController(mapper, options)
     {
         private readonly IUserService<AUser, ARole> _identityService = identityService.UserService;
         [HttpGet("user")]
+        [AllowAnonymous]
         public IActionResult GetUser()
         {
 
             List<AUser>? listUser = _identityService.GetAll();
 
-            if (listUser == null) return BadRequest("User Not Found");
+            if (listUser == null) return BadRequest(LocalValue.Get(KeyStore.UserNotFound));
 
             if (listUser.Count > 0)
             {
@@ -33,26 +39,64 @@ namespace Identity_API.Src.Controllers
                 return Ok(userDTOs);
                 
             }
-            return BadRequest("User Not Found");
+            return BadRequest(LocalValue.Get(KeyStore.UserNotFound));
 
         }
         [HttpPut("update-user")]
-        public async Task<IActionResult> Update(AUser user)
+        public async Task<IActionResult> Update([FromBody] UpdateUserDTO updateRequest)
         {
-            if (await _identityService.UpdateUserAsync(user))
+
+            var tokenInfo = Request.ExtractTokenInfo(_jwtSetting);
+            if (tokenInfo == null)
+                return Unauthorized(LocalValue.Get(KeyStore.UnAuthorize));
+
+            var user = await _identityService.FindUserByIdAsync(tokenInfo.UserId);
+            if (user == null)
+                return BadRequest(LocalValue.Get(KeyStore.UserNotFound));
+            try
             {
-                return Ok(user);
+                if (!string.IsNullOrEmpty(updateRequest.FirstName))
+                    user.FirstName = updateRequest.FirstName;
+
+                if (!string.IsNullOrEmpty(updateRequest.LastName))
+                    user.LastName = updateRequest.LastName;
+
+                if (!string.IsNullOrEmpty(updateRequest.Email))
+                    user.Email = updateRequest.Email;
+
+                if (!string.IsNullOrEmpty(updateRequest.PhoneNumber))
+                    user.PhoneNumber = updateRequest.PhoneNumber;
+
+                if (updateRequest.Gender != null)
+                    user.Gender = updateRequest.Gender.Value;
+
+                if (updateRequest.DateOfBirth != null)
+                    user.DateOfBirth = updateRequest.DateOfBirth.Value;
+                
+                if (updateRequest.EnableTwoFactor != null)
+                    user.TwoFactorEnabled = updateRequest.EnableTwoFactor.Value;
+
+                if (await _identityService.UpdateUserAsync(user))
+                    return Ok(LocalValue.Get(KeyStore.GeneralUpdateSuccess));
             }
-            return BadRequest("User NotFound");
+            catch (Exception)
+            {
+                return BadRequest(LocalValue.Get(KeyStore.GeneralUpdateError));
+            }
+            return BadRequest(LocalValue.Get(KeyStore.GeneralUpdateError));
         }
         [HttpDelete("Delete-user")]
-        public async Task<IActionResult> Delete(AUser user)
+        public async Task<IActionResult> Delete()
         {
-            if  (await _identityService.DeleteUserAsync(user))
+            TokenInfoDTO? tokenInfo = Request.ExtractTokenInfo(_jwtSetting);
+            AUser? user = 
+                tokenInfo != null ? 
+                await _identityService.FindUserByIdAsync(tokenInfo.UserId) : null;
+            if  (user != null && await _identityService.DeleteUserAsync(user))
             {
                 return Ok(user);
             }
-            return BadRequest("User NotFound");
+            return BadRequest(LocalValue.Get(KeyStore.UserNotFound));
         }
 
     }

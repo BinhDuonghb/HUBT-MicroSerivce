@@ -1,5 +1,4 @@
 using System.Globalization;
-using HUBT_Social_API;
 using HUBT_Social_Core.Settings;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Localization;

@@ -1,4 +1,3 @@
-using HUBT_Social_API;
 using Microsoft.Extensions.Localization;
 
 namespace HUBT_Social_Core.Settings

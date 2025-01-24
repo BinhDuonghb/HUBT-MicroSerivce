@@ -1,9 +1,12 @@
 ﻿using AutoMapper;
 using HUBT_Social_Base;
 using HUBT_Social_Core.Models.DTOs;
+using HUBT_Social_Core.Models.DTOs.IdentityDTO;
+using HUBT_Social_Core.Settings;
 using HUBT_Social_MongoDb_Service.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using TempRegister_API.Src.Models;
 
@@ -13,7 +16,8 @@ namespace TempRegister_API.Src.Controllers
     [ApiController]
     public class TempRegisterController(
         IMongoService<TempUserRegister> tempUserRegister,
-        IMapper mapper) : DataLayerController(mapper)
+        IOptions<JwtSetting> option,
+        IMapper mapper) : DataLayerController(mapper, option)
     {
         private readonly IMongoService<TempUserRegister> _tempUserRegister = tempUserRegister;
 

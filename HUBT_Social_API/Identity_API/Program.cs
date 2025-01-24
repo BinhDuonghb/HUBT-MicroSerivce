@@ -17,9 +17,10 @@ namespace Identity_API
         {
             builder.Services.AddAuthorization();
             builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
+            builder.Services.AddSwaggerGenService();
             builder.Services.AddIdentityConfiguration(builder.Configuration);
             builder.Services.AddJwtConfiguration(builder.Configuration);
+            builder.Services.AddMongoMapper();
             builder.Services.ConfigureLocalization();
 
         }
@@ -47,7 +48,7 @@ namespace Identity_API
             }
 
             app.UseHttpsRedirection();
-
+            app.UseAuthentication();
             app.UseAuthorization();
             app.UseLocalization();
 

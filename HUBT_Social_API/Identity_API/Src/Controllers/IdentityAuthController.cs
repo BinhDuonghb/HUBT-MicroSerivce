@@ -26,7 +26,7 @@ namespace Identity_API.Src.Controllers
         {
             if (string.IsNullOrWhiteSpace(model.Identifier) || string.IsNullOrWhiteSpace(model.Password))
             {
-                return BadRequest(ModelState);
+                return BadRequest(LocalValue.Get(KeyStore.InvalidInformation));
             }
             var (result, _) = await _identityAuthService.LoginAsync(model);
 

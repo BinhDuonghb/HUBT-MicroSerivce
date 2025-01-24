@@ -42,20 +42,17 @@ namespace HUBT_Social_Identity_Service.ASP_Extensions
                 }
             };
 
-            var builder = new CustomIdentityBuilder(services,database);
-
             services.ConfigureMongoDbIdentity<TUser, TRole, Guid>(mongodbConfig)
                 .AddUserManager<UserManager<TUser>>()
                 .AddSignInManager<SignInManager<TUser>>()
                 .AddRoleManager<RoleManager<TRole>>()
                 .AddDefaultTokenProviders();
-
+            
             services.AddScoped<IUserService<TUser, TRole>, UserService<TUser, TRole>>();
             services.AddScoped<IAuthenService<TUser, TRole>, AuthenService<TUser, TRole>>();
             services.AddScoped<IHubtIdentityService<TUser, TRole>, HubtIdentityService<TUser, TRole>>();
-            services.AddCustomIdentityMapper<TUser, TRole>();
 
-            return builder;
+            return new CustomIdentityBuilder(services, database);
         }
     }
 }

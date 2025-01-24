@@ -8,7 +8,7 @@ namespace HUBT_Social_Identity_Service.ASP_Extensions
 {
     public static class MapperConfiguration
     {
-        internal static IServiceCollection AddCustomIdentityMapper<TUser, TRole>(
+        public static IServiceCollection AddCustomIdentityMapper<TUser, TRole>(
             this IServiceCollection services
         )
             where TUser : MongoIdentityUser<Guid>, new()

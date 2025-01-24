@@ -1,6 +1,7 @@
 ﻿using HUBT_Social_Base.ASP_Extentions;
 using HUBT_Social_Core;
 using HUBT_Social_Core.Models.DTOs;
+using HUBT_Social_Core.Models.DTOs.IdentityDTO;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using User_API.Src.Service;
