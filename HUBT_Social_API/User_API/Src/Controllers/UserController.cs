@@ -4,13 +4,14 @@ using HUBT_Social_Core.Models.DTOs;
 using HUBT_Social_Core.Models.DTOs.IdentityDTO;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Net;
 using User_API.Src.Service;
 
 namespace User_API.Src.Controllers
 {
     [Route("api/user")]
     [ApiController]
-    public class UserController(IUserService userService) : CoreController
+    public class UserController(IUserService userService) : ControllerBase
     {
         private readonly IUserService _identityService = userService;
         [HttpGet]
@@ -18,7 +19,7 @@ namespace User_API.Src.Controllers
         {
             ResponseDTO result = await _identityService.GetUser();
             List<AUserDTO>? userDTO = result.ConvertTo<List<AUserDTO>>();
-            if (userDTO != null)
+            if (userDTO != null && result.StatusCode == HttpStatusCode.OK)
             {
 
                 if (!string.IsNullOrEmpty(name))
@@ -32,6 +33,10 @@ namespace User_API.Src.Controllers
                 }
                 return Ok(userDTO);
 
+            }
+            if (result.StatusCode == HttpStatusCode.Unauthorized)
+            {
+                return Unauthorized(result.Message);
             }
             return BadRequest(result.Message);
 

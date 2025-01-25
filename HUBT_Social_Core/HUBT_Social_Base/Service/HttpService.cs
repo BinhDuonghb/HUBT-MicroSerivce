@@ -21,57 +21,85 @@ namespace HUBT_Social_Base.Service
             try
             {
                 HttpClient client = _httpClientFactory.CreateClient();
-                HttpRequestMessage message = new();
-                message.Headers.Add("Accept", "application/json");
-                
-                if (!string.IsNullOrEmpty(request.AccessToken))
-                {
-                    message.Headers.Authorization = new AuthenticationHeaderValue("Bearer", request.AccessToken);
-                }
+                HttpRequestMessage message = CreateHttpRequestMessage(request);
+                HttpResponseMessage apiResponse = await client.SendAsync(message);
 
-                message.RequestUri = new Uri(request.Url);
-                if(request.Data != null)
-                {
-                    message.Content = new StringContent(JsonConvert.SerializeObject(request.Data), Encoding.UTF8, "application/json");
-                }
-                HttpResponseMessage? apiResponse = null;
-
-                message.Method = request.ApiType switch
-                {
-                    ApiType.POST => HttpMethod.Post,
-                    ApiType.PUT => HttpMethod.Put,
-                    ApiType.DELETE => HttpMethod.Delete,
-
-                    _ => HttpMethod.Get,
-                };
-                apiResponse = await client.SendAsync(message);
-                ResponseDTO? response = apiResponse.StatusCode switch 
-                { 
-                    HttpStatusCode.NotFound => new() {Message = LocalValue.Get(KeyStore.ApiNotFound)  },
-                    HttpStatusCode.Unauthorized => new() { Message = LocalValue.Get(KeyStore.UnAuthorize) },
-                    HttpStatusCode.Forbidden => new() { Message = LocalValue.Get(KeyStore.ApiForbibben) },
-                    HttpStatusCode.InternalServerError => new() { Message = LocalValue.Get(KeyStore.InternalServerError) },
-                    _ => JsonConvert.DeserializeObject<ResponseDTO>(await apiResponse.Content.ReadAsStringAsync())
-                };
-                if (response != null)
-                {
-                    return response;
-                }
-                return 
-                    new ResponseDTO 
-                        { 
-                            Message = LocalValue.Get(KeyStore.ApiError) 
-                        };
-                
+                return await ProcessApiResponse(apiResponse);
             }
             catch (Exception)
             {
-                return 
-                    new ResponseDTO 
-                        {  
-                            Message = LocalValue.Get(KeyStore.ApiError) 
-                        };
+                return HandleException();
             }
+        }
+
+        private static HttpRequestMessage CreateHttpRequestMessage(RequestDTO request)
+        {
+            var message = new HttpRequestMessage
+            {
+                RequestUri = new Uri(request.Url),
+                Method = GetHttpMethod(request.ApiType)
+            };
+
+            message.Headers.Add("Accept", "application/json");
+
+            if (!string.IsNullOrEmpty(request.AccessToken))
+            {
+                message.Headers.Authorization = new AuthenticationHeaderValue("Bearer", request.AccessToken);
+            }
+
+            if (request.Data != null)
+            {
+                message.Content = new StringContent(
+                    JsonConvert.SerializeObject(request.Data),
+                    Encoding.UTF8,
+                    "application/json"
+                );
+            }
+
+            return message;
+        }
+
+        private static HttpMethod GetHttpMethod(ApiType apiType) => apiType switch
+        {
+            ApiType.POST => HttpMethod.Post,
+            ApiType.PUT => HttpMethod.Put,
+            ApiType.DELETE => HttpMethod.Delete,
+            _ => HttpMethod.Get,
+        };
+
+
+        private static async Task<ResponseDTO> ProcessApiResponse(HttpResponseMessage apiResponse)
+        {
+            return apiResponse.StatusCode switch
+            {
+                HttpStatusCode.OK => await HandleSuccessResponse(apiResponse),
+                HttpStatusCode.Created => await HandleSuccessResponse(apiResponse),
+                HttpStatusCode.NotFound => await HandleSuccessResponse(apiResponse),
+                HttpStatusCode.Unauthorized => await HandleSuccessResponse(apiResponse),
+                HttpStatusCode.Forbidden => await HandleSuccessResponse(apiResponse),
+                HttpStatusCode.BadRequest => await HandleSuccessResponse(apiResponse),
+                HttpStatusCode.InternalServerError => await HandleSuccessResponse(apiResponse),
+                _ => CreateErrorResponse(KeyStore.ApiError)
+            };
+        }
+
+        private static async Task<ResponseDTO> HandleSuccessResponse(HttpResponseMessage response)
+        {
+            var content = await response.Content.ReadAsStringAsync();
+            return JsonConvert.DeserializeObject<ResponseDTO>(content)
+                   ?? CreateErrorResponse(KeyStore.ApiError);
+        }
+
+
+        private static ResponseDTO CreateErrorResponse(string key) => new()
+        {
+            Message = LocalValue.Get(key),
+            StatusCode = HttpStatusCode.BadRequest,
+        };
+
+        private static ResponseDTO HandleException()
+        {
+            return CreateErrorResponse(KeyStore.ApiError);
         }
     }
 }

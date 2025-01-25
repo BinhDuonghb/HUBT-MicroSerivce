@@ -20,5 +20,21 @@ namespace Auth_API.Src.Services.Identity
             string path = "auth/create-account";
             return await SendRequestAsync(path, ApiType.POST, request);
         }
+        //public async Task<ResponseDTO> TwoFactorSignIn(LoginByUserNameRequest request)
+        //{
+        //    string path = "auth/vertifile-account";
+        //    return await SendRequestAsync(path, ApiType.POST, request);
+        //}
+
+        //public async Task<ResponseDTO> TwoFactorSignUp(RegisterRequest request)
+        //{
+        //    string path = "auth/create-account";
+        //    return await SendRequestAsync(path, ApiType.POST, request);
+        //}
+        public async Task<ResponseDTO> TokenSubcriber(string userId)
+        {
+            string path = "token";
+            return await SendRequestAsync(path, ApiType.POST, userId);
+        }
     }
 }

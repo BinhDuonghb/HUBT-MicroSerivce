@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using HUBT_Social_Base;
+using HUBT_Social_Core.Models.DTOs.IdentityDTO;
 using HUBT_Social_Core.Models.Requests;
 using HUBT_Social_Core.Models.Requests.LoginRequest;
 using HUBT_Social_Core.Settings;
@@ -28,9 +29,11 @@ namespace Identity_API.Src.Controllers
             {
                 return BadRequest(LocalValue.Get(KeyStore.InvalidInformation));
             }
-            var (result, _) = await _identityAuthService.LoginAsync(model);
-
-            return Ok(result);
+            var (result, user) = await _identityAuthService.LoginAsync(model);
+            AUserDTO userDTO = _mapper.Map<AUserDTO>(user);
+            if (!result.IsNotAllowed && !result.Succeeded && !result.IsLockedOut&& !result.RequiresTwoFactor)
+                return BadRequest(LocalValue.Get(KeyStore.UserNotFound));
+            return Ok(new { Result = result, User = userDTO });
         }
 
         [HttpPost("create-account")]
@@ -38,9 +41,9 @@ namespace Identity_API.Src.Controllers
         {
             if (!ModelState.IsValid)
                 return BadRequest(LocalValue.Get(KeyStore.InvalidInformation));
-            var (result, _) = await _identityAuthService.RegisterAsync(model);
-
-            return Ok(result);
+            var (result, user) = await _identityAuthService.RegisterAsync(model);
+            AUserDTO userDTO = _mapper.Map<AUserDTO>(user);
+            return Ok(new { Result = result, User = userDTO });
         }
     }
 }

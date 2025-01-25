@@ -16,7 +16,8 @@ namespace HUBT_Social_Core
             return base.Ok(new ResponseDTO
             {
                 Message = value is string message ? message : "Request succeeded.",
-                Data = value is string ? null : value
+                Data = value is string ? null : value,
+                StatusCode = System.Net.HttpStatusCode.OK
             });
         }
 
@@ -29,7 +30,8 @@ namespace HUBT_Social_Core
             return base.BadRequest(new ResponseDTO
             {
                 Message = value is string message ? message : "Bad request.",
-                Data = value is string ? null : value
+                Data = value is string ? null : value,
+                StatusCode = System.Net.HttpStatusCode.BadRequest
             });
         }
 
@@ -42,7 +44,8 @@ namespace HUBT_Social_Core
             return base.Unauthorized(new ResponseDTO
             {
                 Message = value is string message ? message : "Unauthorized access.",
-                Data = value is string ? null : value
+                Data = value is string ? null : value,
+                StatusCode = System.Net.HttpStatusCode.Unauthorized
             });
         }
 
@@ -55,7 +58,8 @@ namespace HUBT_Social_Core
             return base.NotFound(new ResponseDTO
             {
                 Message = value is string message ? message : "Resource not found.",
-                Data = value is string ? null : value
+                Data = value is string ? null : value,
+                StatusCode = System.Net.HttpStatusCode.NotFound
             });
         }
 
