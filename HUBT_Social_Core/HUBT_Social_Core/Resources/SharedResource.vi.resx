@@ -454,4 +454,7 @@
   <data name="ApiForbibben" xml:space="preserve">
     <value>Bạn đã bị cấm để truy cập vào api này</value>
   </data>
+  <data name="StoreSuccessfull" xml:space="preserve">
+    <value>Lưu trữ thành công</value>
+  </data>
 </root>

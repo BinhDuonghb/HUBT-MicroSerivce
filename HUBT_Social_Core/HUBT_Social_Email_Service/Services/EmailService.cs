@@ -4,14 +4,14 @@ using MimeKit;
 using MailKit.Net.Smtp;
 using MailKit.Security;
 using Microsoft.AspNetCore.Hosting;
+using System.Reflection;
 
 
 namespace HUBT_Social_Email_Service.Services
 {
-    internal class EmailService(SMPTSetting setting, IWebHostEnvironment env) : IEmailService 
+    internal class EmailService(SMPTSetting setting) : IEmailService 
     {
         private readonly SMPTSetting _emailSetting = setting;
-        private readonly IWebHostEnvironment _env = env;
 
 
         public async Task<bool> SendEmailAsync(EmailRequest request)
@@ -53,8 +53,11 @@ namespace HUBT_Social_Email_Service.Services
             try
             {
                 // Đọc HTML template
-                var filePath = Path.Combine(_env.ContentRootPath, "HTML_Template", "OTPVerify.html");
-                emailHtmlContent = File.ReadAllText(filePath);
+                var assembly = Assembly.GetExecutingAssembly();
+                using Stream? stream = assembly.GetManifestResourceStream("HUBT_Social_Email_Service.HTML_Template.OTPVerify.html") 
+                    ?? throw new FileNotFoundException("Template resource not found");
+                using StreamReader reader = new(stream);
+                emailHtmlContent = reader.ReadToEnd();
             }
             catch
             {

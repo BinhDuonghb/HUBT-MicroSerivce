@@ -26,6 +26,7 @@ namespace Postcode_API.Src.Controllers
         [HttpPost]
         public async Task<IActionResult> SendPostcodeAsync(EmailRequest request)
         {
+            LocalValue.Get(KeyStore.AvatarDefaultFemale1);
             return Ok(await _emailService.SendEmailAsync(request));
         }
     }

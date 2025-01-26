@@ -454,4 +454,7 @@
   <data name="ApiForbibben" xml:space="preserve">
     <value>You have been fobidden to access this APi</value>
   </data>
+  <data name="StoreSuccessfull" xml:space="preserve">
+    <value>Store Data Success</value>
+  </data>
 </root>

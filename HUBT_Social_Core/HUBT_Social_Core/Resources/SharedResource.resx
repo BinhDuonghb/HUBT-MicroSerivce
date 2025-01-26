@@ -441,16 +441,7 @@
   <data name="Email2Text13" xml:space="preserve">
     <value />
   </data>
-  <data name="ApiError" xml:space="preserve">
-    <value />
-  </data>
-  <data name="ApiNotFound" xml:space="preserve">
-    <value />
-  </data>
-  <data name="InternalServerError" xml:space="preserve">
-    <value />
-  </data>
-  <data name="ApiForbibben" xml:space="preserve">
+  <data name="StoreSuccessfull" xml:space="preserve">
     <value />
   </data>
 </root>
