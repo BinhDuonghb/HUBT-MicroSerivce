@@ -33,7 +33,15 @@ public static class JwtConfiguration
 
             })
             .AddCookie(IdentityConstants.ApplicationScheme);
-        services.Configure<JwtSetting>(pr => pr = jwtSettings);
+        services.Configure<JwtSetting>(options =>
+        {
+            options.Issuer = jwtSettings.Issuer;
+            options.Audience = jwtSettings.Audience;
+            options.SecretKey = jwtSettings.SecretKey;
+            options.RefreshSecretKey = jwtSettings.RefreshSecretKey;
+            options.TokenExpirationInMinutes = jwtSettings.TokenExpirationInMinutes;
+            options.RefreshTokenExpirationInDays = jwtSettings.RefreshTokenExpirationInDays;
+        });
         return services;
     }
 }

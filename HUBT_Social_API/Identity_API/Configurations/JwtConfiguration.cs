@@ -9,7 +9,7 @@ namespace Identity_API.Configurations
         public static IServiceCollection AddJwtConfiguration(this IServiceCollection services, IConfiguration configuration)
         {
             JwtSetting? jwtSettings = configuration.GetSection("JwtSettings").Get<JwtSetting>();
-            services.Configure<JwtSetting>(configuration.GetSection("JwtSettings"));
+            
             if (jwtSettings != null)
             {
                 services.ConfigureJwt(jwtSettings);
