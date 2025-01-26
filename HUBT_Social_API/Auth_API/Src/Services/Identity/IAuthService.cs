@@ -11,6 +11,7 @@ namespace Auth_API.Src.Services.Identity
         Task<ResponseDTO> SignIn(LoginByUserNameRequest request);
         Task<ResponseDTO> SignUp(RegisterRequest request);
         Task<ResponseDTO> TokenSubcriber(string userId);
+        Task<bool> IsUsed(RegisterRequest request);
 
     }
 }

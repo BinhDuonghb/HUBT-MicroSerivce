@@ -10,7 +10,7 @@ namespace HUBT_Social_MongoDb_Service.Configurations
     {
         public MongoMapper()
         {
-            CreateMap<TCollection,TCollectionDTO>();
+            CreateMap<TCollection,TCollectionDTO>().ReverseMap();
         }
     }
 }

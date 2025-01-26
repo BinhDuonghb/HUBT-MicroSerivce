@@ -2,6 +2,7 @@
 using HUBT_Social_Base;
 using HUBT_Social_Core.Models.DTOs;
 using HUBT_Social_Core.Models.DTOs.IdentityDTO;
+using HUBT_Social_Core.Models.Requests;
 using HUBT_Social_Core.Settings;
 using HUBT_Social_MongoDb_Service.Services;
 using Microsoft.AspNetCore.Http;
@@ -12,7 +13,7 @@ using TempRegister_API.Src.Models;
 
 namespace TempRegister_API.Src.Controllers
 {
-    [Route("api/TempRegister")]
+    [Route("api/tempRegister")]
     [ApiController]
     public class TempRegisterController(
         IMongoService<TempUserRegister> tempUserRegister,
@@ -21,46 +22,49 @@ namespace TempRegister_API.Src.Controllers
     {
         private readonly IMongoService<TempUserRegister> _tempUserRegister = tempUserRegister;
 
-        [HttpGet("get-temp-user")]
-        public async Task<IActionResult> Get(string id)
+        [HttpPost]
+        public async Task<IActionResult> StoreTempUser([FromBody] RegisterRequest model)
         {
-            TempUserRegister? tempUser  = await _tempUserRegister.GetById(id);
-            if (tempUser != null)
-            {
-                TempUserDTO tempUserDTO = _mapper.Map<TempUserDTO>(tempUser);
-                return Ok(tempUserDTO);
-            }
-            return BadRequest("Not Found");
-        }
-        [HttpPut("update-temp-user")]
-        public async Task<IActionResult> Update(TempUserRegister tempUser)
-        {
-            
-            if (await _tempUserRegister.Update(tempUser))
-            {
-                return Ok(tempUser);
-            }
-            return BadRequest("Not Found");
-        }
-        [HttpDelete("delete-temp-user")]
-        public async Task<IActionResult> Delete(TempUserRegister tempUser)
-        {
+            if (model == null) return BadRequest(LocalValue.Get(KeyStore.InvalidInformation));
 
-            if (await _tempUserRegister.Delete(tempUser))
-            {
-                return Ok("Delete Success");
-            }
-            return BadRequest("Not Found");
-        }
-        [HttpPost("create-temp-user")]
-        public async Task<IActionResult> Create(TempUserRegister tempUser)
-        {
 
-            if (await _tempUserRegister.Create(tempUser))
+            TempUserRegister? tempUserRegister = await _tempUserRegister.GetById(model.Email);
+            try
             {
-                return Ok(tempUser);
+                if (tempUserRegister == null)
+                {
+                    TempUserRegister tempUser = new()
+                    {
+                        Email = model.Email,
+                        ExpireTime = DateTime.UtcNow,
+                        UserName = model.UserName,
+                        Password = model.Password
+                    };
+                    await _tempUserRegister.Create(tempUser);
+                    return Ok(LocalValue.Get(KeyStore.StepOneVerificationSuccess));
+                };
+                tempUserRegister.UserName = model.UserName;
+                tempUserRegister.Password = model.Password;
+                tempUserRegister.ExpireTime = DateTime.UtcNow;
+
+                await _tempUserRegister.Update(tempUserRegister);
+                return Ok(LocalValue.Get(KeyStore.StepOneVerificationSuccess));
             }
-            return BadRequest("Not Found");
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                return BadRequest(LocalValue.Get(KeyStore.UnableToStoreInDatabase));
+            }
+        }
+        [HttpGet]
+        public async Task<IActionResult> Get([FromBody] string email)
+        {
+            if (!string.IsNullOrEmpty(email))
+            {
+                TempUserRegister? tempUser = await _tempUserRegister.GetById(email);
+                return tempUser != null ? Ok(_mapper.Map<TempUserDTO>(tempUser)) : BadRequest(LocalValue.Get(KeyStore.UserNotFound));
+            }
+            return BadRequest(LocalValue.Get(KeyStore.InvalidInformation));
         }
     }
 }

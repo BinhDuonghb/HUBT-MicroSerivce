@@ -15,7 +15,7 @@ namespace User_API.Src.Controllers
     {
         private readonly IUserService _identityService = userService;
         [HttpGet]
-        public async Task<IActionResult> Get([FromQuery] string? name, [FromQuery] string? id)
+        public async Task<IActionResult> Get([FromQuery] string? name, [FromQuery] string? id,[FromQuery] string? email)
         {
             ResponseDTO result = await _identityService.GetUser();
             List<AUserDTO>? userDTO = result.ConvertTo<List<AUserDTO>>();
@@ -26,7 +26,10 @@ namespace User_API.Src.Controllers
                 {
                     userDTO = userDTO.Where(user => user.UserName == name).ToList();
                 }
-
+                if (!string.IsNullOrEmpty(email))
+                {
+                    userDTO = userDTO.Where(user => user.Email == email).ToList();
+                }
                 if (!string.IsNullOrEmpty(id))
                 {
                     userDTO = userDTO.Where(user => user.Id.ToString() == id).ToList();

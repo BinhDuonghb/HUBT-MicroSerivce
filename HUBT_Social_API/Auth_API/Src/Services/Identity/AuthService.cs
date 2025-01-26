@@ -1,9 +1,13 @@
 ﻿using HUBT_Social_Base;
+using HUBT_Social_Base.ASP_Extentions;
 using HUBT_Social_Base.Service;
 using HUBT_Social_Core.Models.DTOs;
+using HUBT_Social_Core.Models.DTOs.IdentityDTO;
 using HUBT_Social_Core.Models.Requests;
 using HUBT_Social_Core.Models.Requests.LoginRequest;
 using HUBT_Social_Core.Settings.@enum;
+using System.Net;
+using System.Xml.Linq;
 
 namespace Auth_API.Src.Services.Identity
 {
@@ -31,6 +35,33 @@ namespace Auth_API.Src.Services.Identity
         //    string path = "auth/create-account";
         //    return await SendRequestAsync(path, ApiType.POST, request);
         //}
+        public async Task<bool> IsUsed(RegisterRequest request)
+        {
+            string path = $"user";
+            ResponseDTO result = await SendRequestAsync(path, ApiType.GET);
+            List<AUserDTO>? userDTO = result.ConvertTo<List<AUserDTO>>();
+            if (userDTO != null && result.StatusCode == HttpStatusCode.OK)
+            {
+
+                if (!string.IsNullOrEmpty(request.Email))
+                {
+                    List<AUserDTO>? userDTO1;
+                    userDTO1 = userDTO.Where(user => user.Email == request.Email).ToList();
+                    if (userDTO1 != null) return true;   
+                }
+                if (!string.IsNullOrEmpty(request.UserName))
+                {
+                    List<AUserDTO>? userDTO2;
+                    userDTO2 = userDTO.Where(user => user.UserName == request.UserName).ToList();
+                    if (userDTO2 != null) return true;
+                }
+            }
+            if (result.StatusCode == HttpStatusCode.Unauthorized)
+            {
+                return false;
+            }
+            return false;
+        }
         public async Task<ResponseDTO> TokenSubcriber(string userId)
         {
             string path = "token";

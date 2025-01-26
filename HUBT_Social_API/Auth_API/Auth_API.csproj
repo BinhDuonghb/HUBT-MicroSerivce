@@ -23,8 +23,4 @@
     </Reference>
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Src\Services\TempUser\" />
-  </ItemGroup>
-
 </Project>
