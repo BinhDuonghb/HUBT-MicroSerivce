@@ -1,4 +1,4 @@
-﻿using HUBT_Social_Core.Models.DTOs.IdentityDTO;
+﻿using HUBT_Social_Core.Models.DTOs.EmailDTO;
 using HUBT_Social_MongoDb_Service.ASP_Extentions;
 using Postcode_API.Src.Models;
 

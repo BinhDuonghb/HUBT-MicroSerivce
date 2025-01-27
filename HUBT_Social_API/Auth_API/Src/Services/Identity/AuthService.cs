@@ -47,13 +47,13 @@ namespace Auth_API.Src.Services.Identity
                 {
                     List<AUserDTO>? userDTO1;
                     userDTO1 = userDTO.Where(user => user.Email == request.Email).ToList();
-                    if (userDTO1 != null) return true;   
+                    if (userDTO1.Count != 0) return true;   
                 }
                 if (!string.IsNullOrEmpty(request.UserName))
                 {
                     List<AUserDTO>? userDTO2;
                     userDTO2 = userDTO.Where(user => user.UserName == request.UserName).ToList();
-                    if (userDTO2 != null) return true;
+                    if (userDTO2.Count != 0) return true;
                 }
             }
             if (result.StatusCode == HttpStatusCode.Unauthorized)

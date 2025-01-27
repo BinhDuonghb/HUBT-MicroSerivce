@@ -3,6 +3,7 @@ using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -12,6 +13,7 @@ namespace HUBT_Social_MongoDb_Service.Services
         where Collection : class
     {
         private readonly IMongoCollection<Collection> _mongoCollection = mongoCollection;
+
         public async Task<bool> Create(Collection collection)
         {
             try
@@ -75,18 +77,31 @@ namespace HUBT_Social_MongoDb_Service.Services
                 var filter = Builders<Collection>.Filter.Eq("_id", id);
                 var updateResult = await _mongoCollection.ReplaceOneAsync(filter, collection);
 
-                return updateResult.ModifiedCount > 0;
+                return updateResult.IsAcknowledged;
             }
             catch (Exception)
             {
                 return false;
             }
         }
+
         public async Task<IEnumerable<Collection>> GetAll()
         {
             try
             {
                 return await _mongoCollection.Find(_ => true).ToListAsync();
+            }
+            catch (Exception)
+            {
+                return [];
+            }
+        }
+
+        public async Task<IEnumerable<Collection>> Find(Expression<Func<Collection, bool>> predicate)
+        {
+            try
+            {
+                return await _mongoCollection.Find(predicate).ToListAsync();
             }
             catch (Exception)
             {
