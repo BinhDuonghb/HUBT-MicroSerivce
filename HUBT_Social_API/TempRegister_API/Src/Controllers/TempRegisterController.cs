@@ -57,7 +57,7 @@ namespace TempRegister_API.Src.Controllers
             }
         }
         [HttpGet]
-        public async Task<IActionResult> Get([FromBody] string email)
+        public async Task<IActionResult> Get(string email)
         {
             if (!string.IsNullOrEmpty(email))
             {

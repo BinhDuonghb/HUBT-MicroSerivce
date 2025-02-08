@@ -1,4 +1,5 @@
-﻿using MongoDB.Bson.Serialization.Attributes;
+﻿using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
@@ -6,6 +7,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace HUBT_Social_MongoDb_Service.Services
 {
@@ -38,7 +40,7 @@ namespace HUBT_Social_MongoDb_Service.Services
                 if (string.IsNullOrEmpty(id))
                     throw new InvalidOperationException("Id value is null or empty");
 
-                var filter = Builders<Collection>.Filter.Eq("_id", id);
+                var filter = BuildIdFilter<Collection>(id);
                 var result = await _mongoCollection.DeleteOneAsync(filter);
 
                 return result.DeletedCount > 0;
@@ -53,7 +55,7 @@ namespace HUBT_Social_MongoDb_Service.Services
         {
             try
             {
-                var filter = Builders<Collection>.Filter.Eq("_id", id);
+                var filter = BuildIdFilter<Collection>(id);
                 return await _mongoCollection.Find(filter).FirstOrDefaultAsync();
             }
             catch (Exception)
@@ -70,17 +72,15 @@ namespace HUBT_Social_MongoDb_Service.Services
                     .FirstOrDefault(p => p.GetCustomAttributes(typeof(BsonIdAttribute), true).Length != 0)
                     ?? throw new InvalidOperationException("No BsonId property found");
 
-                var id = idProperty.GetValue(collection)?.ToString();
-                if (string.IsNullOrEmpty(id))
-                    throw new InvalidOperationException("Id value is null or empty");
-
-                var filter = Builders<Collection>.Filter.Eq("_id", id);
+                var id = idProperty.GetValue(collection) ?? throw new InvalidOperationException("Id value is null");
+                var filter = BuildIdFilter<Collection>(id);
                 var updateResult = await _mongoCollection.ReplaceOneAsync(filter, collection);
+                return updateResult.ModifiedCount > 0;
 
-                return updateResult.IsAcknowledged;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Console.WriteLine($"Update failed: {ex.Message}");
                 return false;
             }
         }
@@ -113,7 +113,7 @@ namespace HUBT_Social_MongoDb_Service.Services
         {
             try
             {
-                var filter = Builders<Collection>.Filter.Eq("_id", id);
+                var filter = BuildIdFilter<Collection>(id);
                 return await _mongoCollection.Find(filter).AnyAsync();
             }
             catch (Exception)
@@ -133,5 +133,20 @@ namespace HUBT_Social_MongoDb_Service.Services
                 return 0;
             }
         }
+
+        private static FilterDefinition<T> BuildIdFilter<T>(object id)
+        {
+            ArgumentNullException.ThrowIfNull(id);
+
+            if (id is ObjectId objectId)
+                return Builders<T>.Filter.Eq("_id", objectId);
+
+            var idString = id.ToString();
+            if (ObjectId.TryParse(idString, out ObjectId parsedId))
+                return Builders<T>.Filter.Eq("_id", parsedId);
+
+            return Builders<T>.Filter.Eq("_id", idString);
+        }
+
     }
 }

@@ -10,12 +10,12 @@ namespace Auth_API.Src.Services.TempUser
     {
         public async Task<ResponseDTO> Get(string email)
         {
-            return await SendRequestAsync("", ApiType.GET, email);
+            return await SendRequestAsync($"tempRegister?email={email}", ApiType.GET);
         }
 
         public async Task<ResponseDTO> StoreIn(RegisterRequest request)
         {
-            return await SendRequestAsync("", ApiType.POST, request);
+            return await SendRequestAsync("tempRegister", ApiType.POST, request);
         }
     }
 }

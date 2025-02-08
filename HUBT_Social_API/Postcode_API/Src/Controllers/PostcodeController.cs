@@ -5,6 +5,7 @@ using HUBT_Social_Core.Settings;
 using HUBT_Social_Email_Service.Services;
 using HUBT_Social_MongoDb_Service.ASP_Extentions;
 using HUBT_Social_MongoDb_Service.Services;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
@@ -93,7 +94,6 @@ namespace Postcode_API.Src.Controllers
 
             return BadRequest(LocalValue.Get(KeyStore.NoMessagesFound));
         }
-
 
         private static string GenerateOtp()
         {

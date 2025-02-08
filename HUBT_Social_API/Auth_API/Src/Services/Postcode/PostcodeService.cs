@@ -14,7 +14,7 @@ namespace Auth_API.Src.Services.Postcode
     public class PostcodeService(IHttpService httpService, string basePath) : BaseService(httpService, basePath), IPostcodeService
     {
         
-        public async Task<ResponseDTO> CreatePostcodeAsync(CreatePostcodeRequest request)
+        private async Task<ResponseDTO> CreatePostcodeAsync(CreatePostcodeRequest request)
         {
             return await SendRequestAsync("create-postcode", ApiType.POST, request);
         }
@@ -30,7 +30,7 @@ namespace Auth_API.Src.Services.Postcode
             } 
             return null;
         }
-        public async Task<ResponseDTO> SendPostcodeAsync(EmailRequest request)
+        private async Task<ResponseDTO> SendPostcodeAsync(EmailRequest request)
         {
             return await SendRequestAsync("send-postcode", ApiType.POST, request);
         }

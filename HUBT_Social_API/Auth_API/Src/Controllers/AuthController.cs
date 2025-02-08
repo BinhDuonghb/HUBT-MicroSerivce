@@ -4,17 +4,13 @@ using Auth_API.Src.Services.Postcode;
 using Auth_API.Src.Services.TempUser;
 using HUBT_Social_Base.ASP_Extentions;
 using HUBT_Social_Base.Helpers;
-using HUBT_Social_Core;
 using HUBT_Social_Core.Models.DTOs;
 using HUBT_Social_Core.Models.Requests.LoginRequest;
 using HUBT_Social_Core.Models.DTOs.IdentityDTO;
 using HUBT_Social_Core.Models.Requests;
 using HUBT_Social_Core.Settings;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
 using System.Net;
-using System.Reflection.Metadata.Ecma335;
 
 namespace Auth_API.Src.Controllers
 {
@@ -90,6 +86,7 @@ namespace Auth_API.Src.Controllers
                     {
                         RequiresTwoFactor = signInResult.RequiresTwoFactor,
                         Message = TokenResult.Message,
+                        MaskEmail = user.Email,
                         UserToken = tokenResponse
                     }) : BadRequest(
                         new SignInResponse

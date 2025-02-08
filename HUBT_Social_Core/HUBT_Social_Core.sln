@@ -13,6 +13,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HUBT_Social_MongoDb_Service
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HUBT_Social_Email_Service", "HUBT_Social_Email_Service\HUBT_Social_Email_Service.csproj", "{4137245E-7C78-44FA-BF5E-A007C765C22F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestLibary", "TestLibary\TestLibary.csproj", "{7D8BAB06-8C48-49E4-BBA6-F984F887F8AF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{4137245E-7C78-44FA-BF5E-A007C765C22F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4137245E-7C78-44FA-BF5E-A007C765C22F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4137245E-7C78-44FA-BF5E-A007C765C22F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7D8BAB06-8C48-49E4-BBA6-F984F887F8AF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7D8BAB06-8C48-49E4-BBA6-F984F887F8AF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7D8BAB06-8C48-49E4-BBA6-F984F887F8AF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7D8BAB06-8C48-49E4-BBA6-F984F887F8AF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
