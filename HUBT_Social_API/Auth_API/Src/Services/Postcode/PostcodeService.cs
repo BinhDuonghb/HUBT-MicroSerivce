@@ -1,9 +1,11 @@
 ﻿using HUBT_Social_Base;
 using HUBT_Social_Base.ASP_Extentions;
+using HUBT_Social_Base.Helpers;
 using HUBT_Social_Base.Service;
 using HUBT_Social_Core.Models.DTOs;
 using HUBT_Social_Core.Models.DTOs.EmailDTO;
 using HUBT_Social_Core.Models.Requests;
+using HUBT_Social_Core.Settings;
 using HUBT_Social_Core.Settings.@enum;
 using System.Net;
 
@@ -31,6 +33,36 @@ namespace Auth_API.Src.Services.Postcode
         public async Task<ResponseDTO> SendPostcodeAsync(EmailRequest request)
         {
             return await SendRequestAsync("send-postcode", ApiType.POST, request);
+        }
+        public async Task<ResponseDTO> SendVerificationEmail(string email, string userName, string userAgent, string ipAddress)
+        {
+            var createPostcodeRequest = new CreatePostcodeRequest
+            {
+                IpAddress = ipAddress,
+                UserAgent = userAgent,
+                Receiver = email
+            };
+
+            var resultCreatePostcode = await CreatePostcodeAsync(createPostcodeRequest);
+            var postCodeDTO = resultCreatePostcode.ConvertTo<PostCodeDTO>();
+
+            if (postCodeDTO == null || resultCreatePostcode.StatusCode != HttpStatusCode.OK)
+            {
+                return resultCreatePostcode;
+            }
+
+            var emailRequest = new EmailRequest
+            {
+                Code = postCodeDTO.Code,
+                Subject = LocalValue.Get(KeyStore.EmailVerificationCodeSubject),
+                ToEmail = email,
+                FullName = userName,
+                Device = userAgent,
+                Location = await ServerHelper.GetLocationFromIpAsync(ipAddress),
+                DateTime = ServerHelper.ConvertToCustomString(DateTime.UtcNow)
+            };
+
+            return await SendPostcodeAsync(emailRequest);
         }
     }
 }

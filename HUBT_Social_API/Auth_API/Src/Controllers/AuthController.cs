@@ -6,10 +6,9 @@ using HUBT_Social_Base.ASP_Extentions;
 using HUBT_Social_Base.Helpers;
 using HUBT_Social_Core;
 using HUBT_Social_Core.Models.DTOs;
-using HUBT_Social_Core.Models.DTOs.EmailDTO;
+using HUBT_Social_Core.Models.Requests.LoginRequest;
 using HUBT_Social_Core.Models.DTOs.IdentityDTO;
 using HUBT_Social_Core.Models.Requests;
-using HUBT_Social_Core.Models.Requests.LoginRequest;
 using HUBT_Social_Core.Settings;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -34,50 +33,50 @@ namespace Auth_API.Src.Controllers
         {
             string userAgent = Request.Headers.UserAgent.ToString();
             string? ipAddress = ServerHelper.GetIPAddress(HttpContext);
-            if (ipAddress == null) return BadRequest(LocalValue.Get(KeyStore.InvalidInformation));
-            
-            if (!ModelState.IsValid) 
+            if (ipAddress == null)
+                return BadRequest(LocalValue.Get(KeyStore.InvalidInformation));
+
+            if (!ModelState.IsValid)
                 return BadRequest(LocalValue.Get(KeyStore.InvalidCredentials));
+
             ResponseDTO resultTemp = await _tempUserRegister.StoreIn(request);
-            if (resultTemp.StatusCode == HttpStatusCode.OK)
-            {
-                if (!await _authService.IsUsed(request))
-                {
-                    CreatePostcodeRequest createPostcodeRequest = new()
-                    {
-                        IpAddress = ipAddress,
-                        UserAgent = userAgent,
-                        Receiver = request.Email,
-                    };
-                    ResponseDTO resultCreatePostcode = await _postcodeService.CreatePostcodeAsync(createPostcodeRequest);
-                    PostCodeDTO? postCodeDTO = resultCreatePostcode.ConvertTo<PostCodeDTO>();
-                    if (postCodeDTO == null)
-                        return BadRequest(resultCreatePostcode.Message);
-                    EmailRequest emailRequest = new()
-                    {
-                        Code = postCodeDTO.Code,
-                        Subject = LocalValue.Get(KeyStore.EmailVerificationCodeSubject),
-                        ToEmail = request.Email,
-                        FullName = request.UserName,
-                        Device = userAgent,
-                        Location = await ServerHelper.GetLocationFromIpAsync(ipAddress),
-                        DateTime = ServerHelper.ConvertToCustomString(DateTime.UtcNow)
-                    };
-                    ResponseDTO resultSendEmail = await _postcodeService.SendPostcodeAsync(emailRequest);
-                    if (resultSendEmail.StatusCode == HttpStatusCode.OK) 
-                        return Ok(resultSendEmail.Message);
-                }
+            if (resultTemp.StatusCode != HttpStatusCode.OK)
+                return BadRequest(resultTemp.Message);
+
+            if (await _authService.IsUsed(request))
                 return BadRequest(LocalValue.Get(KeyStore.UserAlreadyExists));
-                
-            } 
-            return BadRequest(resultTemp.Message);
+
+            var result = await _postcodeService.SendVerificationEmail(
+                request.Email,
+                request.UserName,
+                userAgent,
+                ipAddress
+            );
+
+            return result.StatusCode == HttpStatusCode.OK
+                ? Ok(result.Message)
+                : BadRequest(result.Message);
         }
         [HttpPost("sign-in")]
         public async Task<IActionResult> SignIn(LoginByUserNameRequest request)
         {
+            string userAgent = Request.Headers.UserAgent.ToString();
+            string? ipAddress = ServerHelper.GetIPAddress(HttpContext);
+            if (ipAddress == null) 
+                return BadRequest(
+                    new SignInResponse
+                    {
+                        RequiresTwoFactor = false,
+                        Message = LocalValue.Get(KeyStore.LoginNotAllowed),
+                    });
             ResponseDTO result = await _authService.SignIn(request);
             if (result.StatusCode == HttpStatusCode.BadRequest) 
-                return BadRequest(result.Message);
+                return BadRequest(
+                    new SignInResponse
+                    {
+                        RequiresTwoFactor = false,
+                        Message = result.Message,
+                    });
             DataSignIn? dataSignIn = result.ConvertTo<DataSignIn>();
             if (dataSignIn != null && dataSignIn.Result != null && dataSignIn.User != null)
             {
@@ -87,11 +86,49 @@ namespace Auth_API.Src.Controllers
                 {
                     ResponseDTO TokenResult = await _authService.TokenSubcriber(user.Id.ToString());
                     TokenResponseDTO? tokenResponse = TokenResult.ConvertTo<TokenResponseDTO>();
-                    return tokenResponse != null ? Ok(tokenResponse) : BadRequest(TokenResult.Message);
+                    return tokenResponse != null ? Ok(new SignInResponse
+                    {
+                        RequiresTwoFactor = signInResult.RequiresTwoFactor,
+                        Message = TokenResult.Message,
+                        UserToken = tokenResponse
+                    }) : BadRequest(
+                        new SignInResponse
+                        {
+                            RequiresTwoFactor = signInResult.RequiresTwoFactor,
+                            Message = TokenResult.Message,
+                        });
                 }
-                return dataSignIn.Result.Succeeded ? Ok(dataSignIn) : BadRequest(result.Message);
+                if (signInResult.RequiresTwoFactor)
+                {
+                    ResponseDTO resultSendEmail = await _postcodeService.SendVerificationEmail(
+                        user.Email,
+                        user.FullName,
+                        userAgent,
+                        ipAddress
+                    );
+                    if (resultSendEmail.StatusCode == HttpStatusCode.OK)
+                        return Ok(
+                            new SignInResponse
+                            {
+                                RequiresTwoFactor = signInResult.RequiresTwoFactor,
+                                Message = resultSendEmail.Message,
+                            });
+                }
+                return dataSignIn.Result.IsLockedOut ? BadRequest(new SignInResponse
+                {
+                    RequiresTwoFactor = false,
+                    Message = LocalValue.Get(KeyStore.AccountLocked),
+                }) : BadRequest(new SignInResponse
+                {
+                    RequiresTwoFactor = false,
+                    Message = LocalValue.Get(KeyStore.LoginNotAllowed),
+                });
             }
-            return BadRequest(result.Message);
+            return BadRequest(new SignInResponse
+            {
+                RequiresTwoFactor = false,
+                Message = result.Message,
+            });
 
         }
     }

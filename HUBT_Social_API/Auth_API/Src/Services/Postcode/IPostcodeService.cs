@@ -7,8 +7,8 @@ namespace Auth_API.Src.Services.Postcode
 {
     public interface IPostcodeService : IBaseService
     {
-        Task<ResponseDTO> SendPostcodeAsync(EmailRequest request);
-        Task<ResponseDTO> CreatePostcodeAsync(CreatePostcodeRequest request);
         Task<PostCodeDTO?> GetCurrentPostCode(PostcodeRequest request);
+
+        Task<ResponseDTO> SendVerificationEmail(string email, string userName, string userAgent, string ipAddress);
     }
 }
