@@ -39,7 +39,7 @@ namespace Auth_API.Src.Controllers
             if (resultTemp.StatusCode != HttpStatusCode.OK)
                 return BadRequest(resultTemp.Message);
 
-            if (await _authService.IsUsed(request))
+            if (await _authService.IsUsed(request) != null)
                 return BadRequest(LocalValue.Get(KeyStore.UserAlreadyExists));
 
             var result = await _postcodeService.SendVerificationEmail(

@@ -112,7 +112,65 @@ namespace Auth_API.Src.Controllers
                 {
                     RequiresTwoFactor = false,
                     Message = TokenResult.Message,
+                }
+            );
+        }
+        [HttpPost("sign-in/verify-otp")]
+        public async Task<IActionResult> ConfirmCodeSignIn([FromBody] string code)
+        {
+            string userAgent = Request.Headers.UserAgent.ToString();
+            string? ipAddress = ServerHelper.GetIPAddress(HttpContext);
+            if (ipAddress == null) return BadRequest(
+                new SignInResponse
+                {
+                    RequiresTwoFactor = false,
+                    Message = LocalValue.Get(KeyStore.InvalidInformation)
                 });
+            PostCodeDTO? currentPostcode = await _postcodeService.GetCurrentPostCode(new()
+            {
+                IpAddress = ipAddress,
+                UserAgent = userAgent
+            });
+            if (currentPostcode == null) return BadRequest(
+                new SignInResponse
+                {
+                    RequiresTwoFactor = false,
+                    Message = LocalValue.Get(KeyStore.InvalidInformation)
+                });
+            if (Equals(code, currentPostcode.Code))
+            {
+                AUserDTO? aUser = await _authService.IsUsed(new RegisterRequest
+                {
+                    Email = currentPostcode.Email
+                });
+                if (aUser == null) return Unauthorized(
+                    new SignInResponse
+                    {
+                        RequiresTwoFactor = false,
+                        Message = LocalValue.Get(KeyStore.OTPVerificationFailed)
+                    });
+                ResponseDTO TokenResult = await _authService.TokenSubcriber(aUser.Id.ToString());
+                TokenResponseDTO? tokenResponse = TokenResult.ConvertTo<TokenResponseDTO>();
+                return tokenResponse != null ? Ok(new SignInResponse
+                {
+                    RequiresTwoFactor = false,
+                    Message = TokenResult.Message,
+                    MaskEmail = currentPostcode.Email,
+                    UserToken = tokenResponse
+                }) : BadRequest(
+                    new SignInResponse
+                    {
+                        RequiresTwoFactor = false,
+                        Message = TokenResult.Message,
+                    });
+            }
+            return BadRequest(
+                new SignInResponse
+                {
+                    RequiresTwoFactor = false,
+                    Message = LocalValue.Get(KeyStore.OTPVerificationFailed)
+                }
+            );
         }
     }
 }

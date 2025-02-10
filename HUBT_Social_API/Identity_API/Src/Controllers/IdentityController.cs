@@ -42,6 +42,26 @@ namespace Identity_API.Src.Controllers
             return BadRequest(LocalValue.Get(KeyStore.UserNotFound));
 
         }
+        [HttpGet("user/get")]
+        [AllowAnonymous]
+        public async Task<IActionResult> CheckUser([FromQuery] string? email, [FromQuery] string? userName)
+        {
+            AUserDTO? usedDTO = null;
+
+            if (!string.IsNullOrEmpty(email))
+            {
+                AUser? used = await _identityService.FindUserByEmailAsync(email);
+                usedDTO = used != null ? _mapper.Map<AUserDTO>(used) : null;
+            }
+
+            if (usedDTO == null && !string.IsNullOrEmpty(userName))
+            {
+                AUser? used = await _identityService.FindUserByUserNameAsync(userName);
+                usedDTO = used != null ? _mapper.Map<AUserDTO>(used) : null;
+            }
+
+            return Ok(usedDTO);
+        }
         [HttpPut("update-user")]
         public async Task<IActionResult> Update([FromBody] UpdateUserDTO updateRequest)
         {

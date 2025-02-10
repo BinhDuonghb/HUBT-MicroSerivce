@@ -35,33 +35,24 @@ namespace Auth_API.Src.Services.Identity
         //    string path = "auth/create-account";
         //    return await SendRequestAsync(path, ApiType.POST, request);
         //}
-        public async Task<bool> IsUsed(RegisterRequest request)
+        public async Task<AUserDTO?> IsUsed(RegisterRequest request)
         {
-            string path = $"user";
-            ResponseDTO result = await SendRequestAsync(path, ApiType.GET);
-            List<AUserDTO>? userDTO = result.ConvertTo<List<AUserDTO>>();
-            if (userDTO != null && result.StatusCode == HttpStatusCode.OK)
+            if (string.IsNullOrEmpty(request.Email) && string.IsNullOrEmpty(request.UserName))
             {
+                return null;
+            }
 
-                if (!string.IsNullOrEmpty(request.Email))
-                {
-                    List<AUserDTO>? userDTO1;
-                    userDTO1 = userDTO.Where(user => user.Email == request.Email).ToList();
-                    if (userDTO1.Count != 0) return true;   
-                }
-                if (!string.IsNullOrEmpty(request.UserName))
-                {
-                    List<AUserDTO>? userDTO2;
-                    userDTO2 = userDTO.Where(user => user.UserName == request.UserName).ToList();
-                    if (userDTO2.Count != 0) return true;
-                }
-            }
-            if (result.StatusCode == HttpStatusCode.Unauthorized)
+            string path = $"user/get?email={request.Email}&userName={request.UserName}";
+            ResponseDTO result = await SendRequestAsync(path, ApiType.GET);
+
+            if (result.StatusCode == HttpStatusCode.OK && result.ConvertTo<AUserDTO>() is AUserDTO user)
             {
-                return false;
+                return user;
             }
-            return false;
+
+            return null;
         }
+
         public async Task<ResponseDTO> TokenSubcriber(string userId)
         {
             string path = "token";

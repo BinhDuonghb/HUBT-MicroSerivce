@@ -1,5 +1,6 @@
 ﻿using HUBT_Social_Base;
 using HUBT_Social_Core.Models.DTOs;
+using HUBT_Social_Core.Models.DTOs.IdentityDTO;
 using HUBT_Social_Core.Models.Requests;
 using HUBT_Social_Core.Models.Requests.LoginRequest;
 using Microsoft.AspNetCore.Mvc;
@@ -11,7 +12,7 @@ namespace Auth_API.Src.Services.Identity
         Task<ResponseDTO> SignIn(LoginByUserNameRequest request);
         Task<ResponseDTO> SignUp(RegisterRequest request);
         Task<ResponseDTO> TokenSubcriber(string userId);
-        Task<bool> IsUsed(RegisterRequest request);
+        Task<AUserDTO?> IsUsed(RegisterRequest request);
 
     }
 }
