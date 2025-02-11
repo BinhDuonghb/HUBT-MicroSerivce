@@ -9,30 +9,16 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AspNetCore.Identity.MongoDbCore" Version="6.0.0" />
-    <PackageReference Include="AutoMapper" Version="13.0.1" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.10" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="HUBT_Social_Base">
-      <HintPath>..\..\HUBT_Social_Core\HUBT_Social_Identity_Service\bin\Debug\net8.0\HUBT_Social_Base.dll</HintPath>
-    </Reference>
-    <Reference Include="HUBT_Social_Core">
-      <HintPath>..\..\HUBT_Social_Core\HUBT_Social_Identity_Service\bin\Debug\net8.0\HUBT_Social_Core.dll</HintPath>
-    </Reference>
-    <Reference Include="HUBT_Social_Identity_Service">
-      <HintPath>..\..\HUBT_Social_Core\HUBT_Social_Identity_Service\bin\Debug\net8.0\HUBT_Social_Identity_Service.dll</HintPath>
-    </Reference>
-    <Reference Include="HUBT_Social_MongoDb_Service">
-      <HintPath>..\..\HUBT_Social_Core\HUBT_Social_MongoDb_Service\bin\Debug\net8.0\HUBT_Social_MongoDb_Service.dll</HintPath>
-    </Reference>
+    <Folder Include="Src\Core\" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Src\Core\" />
+    <ProjectReference Include="..\..\HUBT_Social_Core\HUBT_Social_Identity_Service\HUBT_Social_Identity_Service.csproj" />
   </ItemGroup>
 
   <ItemGroup>
